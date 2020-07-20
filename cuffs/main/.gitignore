@@ -6,7 +6,6 @@
 *.c
 *.cpp
 *.html
-build.bat
 CO2_hitemp.npy
 
 # Setuptools distribution folder.
@@ -16,5 +15,3 @@ CO2_hitemp.npy
 /*.egg-info
 *.egg
 
-# HITEMP-path:
-HITEMP_path.py
