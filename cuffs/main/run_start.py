@@ -18,16 +18,17 @@ py_cuffs.set_N_lines(int(2.2E8))
 py_cuffs.init(v_arr,N_wG,N_wL)
 
 
-p = 1.1 #bar
+p =     0.05 #bar
 T = 300.0 #K
 
 ##plt.axhline(0,c='k',lw=1)
 ##plt.axhline(1,c='k',lw=1)
 spectrum_h = py_cuffs.iterate(p, T)
 ##spectrum_h = 10**-spectrum_h
+spectrum_h /= np.max(spectrum_h)
 p1, = plt.plot(v_arr,spectrum_h, "-",linewidth=1)
 
-plt.yscale('log')
+#plt.yscale('log')
 plt.xlim(2400,2200)
 plt.subplots_adjust(bottom=0.20)
 
@@ -39,6 +40,7 @@ def update(val):
     T = temp_slider.val
     spectrum_h = py_cuffs.iterate(p, T)
 ##    spectrum_h = 10**-spectrum_h
+    spectrum_h /= np.max(spectrum_h)
     p1.set_ydata(spectrum_h)
     plt.gcf().canvas.draw_idle()
 
