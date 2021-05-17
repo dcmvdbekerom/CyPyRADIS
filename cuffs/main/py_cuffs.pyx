@@ -42,13 +42,10 @@ cdef  size_t host_params_h_dec_size
 
 cdef  int host_params_h_shared_size
 
-host_params_h_start_ptr = cp.cuda.runtime.eventCreate()
-host_params_h_stop_ptr = cp.cuda.runtime.eventCreate()
+
 host_params_h_start_DLM_ptr = cp.cuda.runtime.eventCreate()
 host_params_h_stop_DLM_ptr = cp.cuda.runtime.eventCreate()
 
-host_params_h_start = cp.cuda.Event(host_params_h_start_ptr)
-host_params_h_stop = cp.cuda.Event(host_params_h_stop_ptr)
 host_params_h_start_DLM = cp.cuda.Event(host_params_h_start_DLM_ptr)
 host_params_h_stop_DLM = cp.cuda.Event(host_params_h_stop_DLM_ptr)
 
@@ -352,7 +349,7 @@ cdef void set_pT(float p, float T):
 
 def read_npy(fname, arr):
     print("Loading {0}...".format(fname))
-    arr = np.load(fname)
+    arr = np.load(fname,mmap_mode='r')
     print("Done!")
     
     
@@ -787,12 +784,12 @@ def init(v_arr,N_wG,N_wL):
     #init_params_h.Max_lines = int(2.4E8) # this is now done with N_lines_to_load; init_params_h.Max_lines is obsolete.
 
     print("Loading v0.npy...")
-    cdef np.ndarray[dtype=np.float32_t, ndim=1] v0 = np.load(database_path+'v0.npy')[-N_lines_to_load:]
+    cdef np.ndarray[dtype=np.float32_t, ndim=1] v0 = np.load(database_path+'v0.npy',mmap_mode='r')[-N_lines_to_load:]
     print("Done!")
     cdef np.ndarray[dtype=np.float32_t, ndim=1] spec_h_v0 = v0
     
     print("Loading da.npy...")
-    cdef np.ndarray[dtype=np.float32_t, ndim=1] da = np.load(database_path+'da.npy')[-N_lines_to_load:]
+    cdef np.ndarray[dtype=np.float32_t, ndim=1] da = np.load(database_path+'da.npy',mmap_mode='r')[-N_lines_to_load:]
     print("Done!")
     cdef np.ndarray[dtype=np.float32_t, ndim=1] spec_h_da = da
 
@@ -810,12 +807,12 @@ def init(v_arr,N_wG,N_wL):
     # wL inits
     print("Init wL: ")
     print("Loading log_2gs.npy...")
-    cdef np.ndarray[dtype=np.float32_t, ndim=1] log_2gs = np.load(database_path+'log_2gs.npy')[-N_lines_to_load:]
+    cdef np.ndarray[dtype=np.float32_t, ndim=1] log_2gs = np.load(database_path+'log_2gs.npy',mmap_mode='r')[-N_lines_to_load:]
     cdef np.ndarray[dtype=np.float32_t, ndim=1] spec_h_log_2gs = log_2gs
     print("Done!")
 
     print("Loading na.npy...")
-    cdef np.ndarray[dtype=np.float32_t, ndim=1] na = np.load(database_path+'na.npy')[-N_lines_to_load:]
+    cdef np.ndarray[dtype=np.float32_t, ndim=1] na = np.load(database_path+'na.npy',mmap_mode='r')[-N_lines_to_load:]
     cdef np.ndarray[dtype=np.float32_t, ndim=1] spec_h_na = na
     print("Done!")
     init_lorentzian_params(log_2gs, na)
@@ -824,7 +821,7 @@ def init(v_arr,N_wG,N_wL):
     # wG inits:
     print("Init wG: ")
     print("Loading log_2vMm.npy...")
-    cdef np.ndarray[dtype=np.float32_t, ndim=1] log_2vMm = np.load(database_path+'log_2vMm.npy')[-N_lines_to_load:]
+    cdef np.ndarray[dtype=np.float32_t, ndim=1] log_2vMm = np.load(database_path+'log_2vMm.npy',mmap_mode='r')[-N_lines_to_load:]
     cdef np.ndarray[dtype=np.float32_t, ndim=1] spec_h_log_2vMm = log_2vMm
     print("Done!")
     init_gaussian_params(log_2vMm)
@@ -833,12 +830,12 @@ def init(v_arr,N_wG,N_wL):
     # I inits:
     print("Init I: ")
     print("Loading S0.npy...")
-    cdef np.ndarray[dtype=np.float32_t, ndim=1] S0 = np.load(database_path+'S0.npy')[-N_lines_to_load:]
+    cdef np.ndarray[dtype=np.float32_t, ndim=1] S0 = np.load(database_path+'S0.npy',mmap_mode='r')[-N_lines_to_load:]
     cdef np.ndarray[dtype=np.float32_t, ndim=1] spec_h_S0 = S0
     print("Done!")
 
     print("Loading El.npy...")
-    cdef np.ndarray[dtype=np.float32_t, ndim=1] El = np.load(database_path+'El.npy')[-N_lines_to_load:]
+    cdef np.ndarray[dtype=np.float32_t, ndim=1] El = np.load(database_path+'El.npy',mmap_mode='r')[-N_lines_to_load:]
     cdef np.ndarray[dtype=np.float32_t, ndim=1] spec_h_El = El
     print("Done!")
     print()
@@ -873,6 +870,10 @@ def init(v_arr,N_wG,N_wL):
     print("Initialization done!")
 
 
+host_params_h_start_ptr = cp.cuda.runtime.eventCreate()
+host_params_h_stop_ptr = cp.cuda.runtime.eventCreate()
+host_params_h_start = cp.cuda.Event(host_params_h_start_ptr)
+host_params_h_stop = cp.cuda.Event(host_params_h_stop_ptr)
 
 def iterate(float p, float T):
     
@@ -900,7 +901,7 @@ def iterate(float p, float T):
     global DLM
     #------------------------------------------------------
 
-    #host_params_h_start.record()
+    host_params_h_start.record()
     
     cdef int n_blocks
     set_pT(p, T)
@@ -982,7 +983,7 @@ def iterate(float p, float T):
     #     for i in spectrum_h_pre:
     #         f.write("%s\n" % str(i))
 
-    #host_params_h_stop.record()
+    host_params_h_stop.record()
     cp.cuda.runtime.eventSynchronize(host_params_h_stop_ptr)
     #host_params_h_elapsedTime = cp.cuda.get_elapsed_time(host_params_h_start, host_params_h_stop)
     
